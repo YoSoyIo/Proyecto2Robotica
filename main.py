@@ -5,6 +5,7 @@ redBajo1 = np.array([0, 100, 20], np.uint8)
 redAlto1 = np.array([8, 255, 255], np.uint8)
 redBajo2=np.array([175, 100, 20], np.uint8)
 redAlto2=np.array([179, 255, 255], np.uint8)
+# Comentario para revisar que hace los commits
 while True:
   ret,frame = cap.read()
   if ret==True:
