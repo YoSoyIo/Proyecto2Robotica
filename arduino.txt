@@ -1,0 +1,219 @@
+/*
+  Capitulo 20 de Arduino desde cero en Español.
+  Programa que utiliza el modulo controlador de motor L298N junto con vehiculo
+  tipo rover para realizar un circuito simple en forma de U.
+
+  Autor: bitwiseAr
+
+*/
+
+#include <SoftwareSerial.h> // libreria que permite establecer pines digitales
+        // para comunicacion serie
+
+SoftwareSerial miBT(13, 12);  // pin 10 como RX, pin 11 como TX
+
+char DATO = 0;      // variable para almacenar caracter recibido
+int tiempo = 100;
+String band = "";
+
+int IN1 = 2;      // IN1 a pin digital 2
+int IN2 = 3;      // IN2 a pin digital 3
+int ENA = 5;      // ENA a pin digital 5
+int IN3 = 7;      // IN3 a pin digital 7
+int IN4 = 8;      // IN4 a pin digital 8
+int ENB = 9;      // ENA a pin digital 9
+int VELOCIDAD = 170, VELOCIDAD2 = 225;      // variable para almacenar valor de velocidad
+
+int TRIG = 51;      // trigger en pin 10
+int ECO = 53;      // echo en pin 9
+int DURACION;
+int DISTANCIA;
+
+int TRIG2 = 50;      // trigger en pin 10
+int ECO2 = 52;      // echo en pin 9
+int DURACION2;
+int DISTANCIA2;
+
+int TRIG3 = 11;      // trigger en pin 10
+int ECO3 = 10;      // echo en pin 9
+int DURACION3;
+int DISTANCIA3;
+
+void setup(){
+  pinMode(IN1, OUTPUT);   // IN1 como salida
+  pinMode(IN2, OUTPUT);   // IN2 como salida
+  pinMode(ENA, OUTPUT);   // ENA como salida
+  pinMode(IN3, OUTPUT);   // IN3 como salida
+  pinMode(IN4, OUTPUT);   // IN4 como salida
+  pinMode(ENB, OUTPUT);   // ENB como salida
+
+  miBT.begin(38400);    // comunicacion serie entre Arduino y el modulo a 38400 bps
+
+  pinMode(TRIG, OUTPUT);  // trigger como salida
+  pinMode(ECO, INPUT);    // echo como entrada
+  pinMode(TRIG2, OUTPUT);  // trigger como salida
+  pinMode(ECO2, INPUT);    // echo como entrada
+  pinMode(TRIG3, OUTPUT);  // trigger como salida
+  pinMode(ECO3, INPUT);    // echo como entrada
+}
+
+void loop(){
+  int band = 0;
+  if (miBT.available()){      // si hay informacion disponible desde modulo
+    DATO = miBT.read();   // almacena en DATO el caracter recibido desde modulo
+    if( DATO == '1' ){   // si el caracter recibido es el numero 1
+      adelante(VELOCIDAD, VELOCIDAD2);
+      tiempo = 600;
+      band = 1;
+    }else if( DATO == '2' ){   // si el caracter recibido es el numero 2
+      reversa(VELOCIDAD, VELOCIDAD2+20);
+      tiempo = 600;
+      band = 1;
+    }else if( DATO == '3' ){   // si el caracter recibido es el numero 3
+      giroA(VELOCIDAD, VELOCIDAD2);
+      tiempo = 350;
+    }else if( DATO == '4' ){   // si el caracter recibido es el numero 4
+      giroH(VELOCIDAD, VELOCIDAD2);
+      tiempo = 350;
+    }else if( DATO == '5' ){   // si el caracter recibido es el numero 1
+      vueltaA(VELOCIDAD, VELOCIDAD2);
+      tiempo = 100;
+    }else if( DATO == '6' ){   // si el caracter recibido es el numero 2
+      vueltaH(VELOCIDAD, VELOCIDAD2);
+      tiempo = 100;
+    }else if( DATO == '7' ){   // si el caracter recibido es el numero 3
+      detieneAmbos();
+    }else if( DATO == '8' ){   // si el caracter recibido es el numero 3
+      Sensores();
+    }
+  }
+  delay(tiempo);
+  detieneAmbos();
+  delay(1000);
+}
+
+void Sensores(){
+  digitalWrite(TRIG, HIGH);     // generacion del pulso a enviar
+  delay(1);       // al pin conectado al trigger
+  digitalWrite(TRIG, LOW);    // del sensor
+
+  DURACION = pulseIn(ECO, HIGH);  // con funcion pulseIn se espera un pulso
+            // alto en Echo
+  DISTANCIA = DURACION / 58.2;
+
+  digitalWrite(TRIG2, HIGH);     // generacion del pulso a enviar
+  delay(1);       // al pin conectado al trigger
+  digitalWrite(TRIG2, LOW);    // del sensor
+
+  DURACION2 = pulseIn(ECO2, HIGH);  // con funcion pulseIn se espera un pulso
+            // alto en Echo
+  DISTANCIA2 = DURACION2 / 58.2;    // distancia medida en centimetros
+
+  digitalWrite(TRIG3, HIGH);     // generacion del pulso a enviar
+  delay(1);       // al pin conectado al trigger
+  digitalWrite(TRIG3, LOW);    // del sensor
+
+  DURACION3 = pulseIn(ECO3, HIGH);  // con funcion pulseIn se espera un pulso
+            // alto en Echo
+  DISTANCIA3 = DURACION3 / 58.2;    // distancia medida en centimetros
+  /*miBT.print(DISTANCIA);
+  miBT.print(",");
+  miBT.print(DISTANCIA2);
+  miBT.print(",");
+  miBT.print(DISTANCIA3);*/
+  //delay(200);
+  //corrigeM(DISTANCIA, DISTANCIA2);
+
+  if(DISTANCIA < 8){
+    band = "0";
+  }else{
+    band = "1";
+  }
+  if(DISTANCIA2 < 7){
+    band+="0";
+  }else{
+    band+="1";
+  }
+  if(DISTANCIA3 < 8){
+    band+="0";
+  }else{
+    band+="1";
+  }
+  miBT.print(band);
+}
+
+void aAvance(int veloc, int sen){  // funcion para avance de motor A
+  if(sen == 1){
+    analogWrite(ENA, veloc);  // velocidad mediante PWM en ENA
+    digitalWrite(IN1, LOW); // IN1 a cero logico
+    digitalWrite(IN2, HIGH);  // IN2 a uno logico
+  }else if(sen == 0){
+    analogWrite(ENA, veloc);  // velocidad mediante PWM en ENA
+    digitalWrite(IN1, HIGH); // IN1 a cero logico
+    digitalWrite(IN2, LOW);  // IN2 a uno logico
+  }else if(sen == 2){
+    analogWrite(ENA, 0);
+  }
+}
+
+void bAvance(int veloc, int sen){  // funcion para avance de motor B
+  if(sen == 1){
+    analogWrite(ENB, veloc);  // velocidad mediante PWM en ENB
+    digitalWrite(IN3, LOW); // IN3 a cero logico
+    digitalWrite(IN4, HIGH);  // IN4 a uno logico
+  }else if(sen == 0){
+    analogWrite(ENB, veloc);  // velocidad mediante PWM en ENB
+    digitalWrite(IN3, HIGH); // IN3 a cero logico
+    digitalWrite(IN4, LOW);  // IN4 a uno logico
+  }else if(sen == 2){
+    analogWrite(ENB, 0);
+  }
+}
+
+void reversa(int veloc, int veloc2){  // funcion para avance de motor B
+  aAvance(veloc, 0);
+  bAvance(veloc2, 0);
+}
+
+void adelante(int veloc, int veloc2){
+  aAvance(veloc, 1);
+  bAvance(veloc2, 1);
+}
+
+void giroH(int veloc, int veloc2){
+  aAvance(veloc, 0);
+  bAvance(veloc2, 1);
+}
+
+void giroA(int veloc, int veloc2){
+  aAvance(veloc, 1);
+  bAvance(veloc2, 0);
+}
+
+void vueltaH(int veloc, int veloc2){
+  aAvance(veloc, 2);
+  bAvance(veloc2, 1);
+}
+
+void vueltaA(int veloc, int veloc2){
+  aAvance(veloc, 1);
+  bAvance(veloc2, 2);
+}
+
+int corrigeM(int a, int b){
+  int c = a-b;
+  if(c > 1){
+    aAvance(100, 1);
+    delay(100);
+  }else if(c < 0){
+    bAvance(100, 1);
+    delay(100);
+  }
+  detieneAmbos();
+  return c;
+}
+
+void detieneAmbos(){    // funcion que detiene ambos motores
+  analogWrite(ENA, 0);    // deshabilita motor A
+  analogWrite(ENB, 0);    // deshabilita motor B
+}
