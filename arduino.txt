@@ -1,3 +1,4 @@
+
 #include <SoftwareSerial.h> // libreria que permite establecer pines digitales
         // para comunicacion serie
 
@@ -14,7 +15,7 @@ int ENA = 5;      // ENA a pin digital 5
 int IN3 = 7;      // IN3 a pin digital 7
 int IN4 = 8;      // IN4 a pin digital 8
 int ENB = 9;      // ENA a pin digital 9
-int VELOCIDAD = 140 , VELOCIDAD2 = 186, VELOCIDAD3 = 155;      // variable para almacenar valor de velocidad
+int VELOCIDAD = 135 , VELOCIDAD2 = 190, VELOCIDAD3 = 155;      // variable para almacenar valor de velocidad
 
 int TRIG = 51;      // trigger en pin 10
 int ECO = 53;      // echo en pin 9
@@ -189,7 +190,7 @@ void reversa(int veloc, int veloc2){  // funcion para avance de motor B
 void adelante(int veloc, int veloc2){
   aAvance(veloc, 1);
   bAvance(veloc2, 1);
-  delay(500);
+  delay(1000);
   
 }
 void corrige(int veloc){
