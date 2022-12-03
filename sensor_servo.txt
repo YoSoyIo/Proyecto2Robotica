@@ -1,0 +1,83 @@
+#include <Servo.h>
+#include "Adafruit_VL53L0X.h"
+#include <SoftwareSerial.h>
+
+SoftwareSerial miBT(13, 12);
+char DATO = 0;
+
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+
+// Declaramos la variable para controlar el servo
+Servo servoMotor;
+
+void setup() {
+  miBT.begin(38400);
+  // Iniciamos el monitor serie para mostrar el resultado
+  Serial.begin(9600);
+
+  // Iniciamos el servo para que empiece a trabajar con el pin 9
+  servoMotor.attach(52);
+
+  // Inicializamos al ángulo 0 el servomotor
+  servoMotor.write(0);
+  while (! Serial) {
+    delay(1);
+  }
+  Serial.println("Adafruit VL53L0X test");
+  if (!lox.begin()) {
+    Serial.println(F("Failed to boot VL53L0X"));
+    while (1);
+  }
+  // power
+  Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
+}
+int i, l = 0;
+void loop() {
+
+
+  // Vamos a tener dos bucles uno para mover en sentido positivo y otro en sentido negativo
+  // Para el sentido positivo
+  if (miBT.available()) {
+    DATO = miBT.read();
+    if (DATO == '2' ) {
+      sensor();
+      miBT.write("***");
+      
+    }
+
+  }
+
+
+}
+
+void sensor() {
+  
+  for (i = 0; i <= 180; i += 45)
+  {
+    // Desplazamos al ángulo correspondiente
+    servoMotor.write(i);
+   // Serial.print(i);
+    // Hacemos una pausa de 25ms
+    delay(250);
+    sensor2(i);
+    /*if (i <= 60 || i >= 120) {
+
+      lox.rangingTest(&measure, false);
+      //; Serial.print(","); Serial.println(measure.RangeMilliMeter);
+    }*/
+  }
+  //Serial.println("for acabado");
+
+  //delay(2000);
+
+}
+
+void sensor2(int i){
+  VL53L0X_RangingMeasurementData_t measure;
+  if (i <= 60 || i >= 120) {
+
+      lox.rangingTest(&measure, false);
+      Serial.print(i); Serial.print(","); Serial.println(measure.RangeMilliMeter);
+     Serial.flush();
+    }
+}
