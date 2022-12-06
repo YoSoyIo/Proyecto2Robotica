@@ -23,15 +23,16 @@ void setup() {
   while (! Serial) {
     delay(1);
   }
-  Serial.println("Adafruit VL53L0X test");
+  //Serial.println("Adafruit VL53L0X test");
   if (!lox.begin()) {
-    Serial.println(F("Failed to boot VL53L0X"));
+    //Serial.println(F("Failed to boot VL53L0X"));
     while (1);
   }
   // power
-  Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
+  //Serial.println(F("VL53L0X API Simple Ranging example\n\n"));
 }
 int i, l = 0;
+int j = 1;
 void loop() {
 
 
@@ -41,43 +42,53 @@ void loop() {
     DATO = miBT.read();
     if (DATO == '2' ) {
       sensor();
-      miBT.write("***");
-      
+
+      //miBT.print(j);
     }
-
   }
-
-
 }
 
 void sensor() {
-  
-  for (i = 0; i <= 180; i += 45)
+
+  for (i = 0; i <= 180; i += 5)
   {
     // Desplazamos al ángulo correspondiente
     servoMotor.write(i);
-   // Serial.print(i);
+    // Serial.print(i);
     // Hacemos una pausa de 25ms
-    delay(250);
+    delay(350);
     sensor2(i);
     /*if (i <= 60 || i >= 120) {
 
       lox.rangingTest(&measure, false);
       //; Serial.print(","); Serial.println(measure.RangeMilliMeter);
-    }*/
+      }*/
   }
   //Serial.println("for acabado");
 
   //delay(2000);
 
 }
-
-void sensor2(int i){
+int k[120];
+void sensor2(int i) {
   VL53L0X_RangingMeasurementData_t measure;
-  if (i <= 60 || i >= 120) {
+  //if (i <= 60 || i >= 120) {
 
-      lox.rangingTest(&measure, false);
-      Serial.print(i); Serial.print(","); Serial.println(measure.RangeMilliMeter);
-     Serial.flush();
+    lox.rangingTest(&measure, false);
+    int f = measure.RangeMilliMeter;
+    int ff = f / 10;
+    if (ff < 819) {
+      if(ff<10){
+          ff=10;
+        }
+      if(ff>99){
+        ff=99;
+      }
+      miBT.print((ff));
+      Serial.print(i);Serial.print(",");Serial.println(ff);
     }
+  //}
+  //k[i]=ff;
+
+  //}
 }
